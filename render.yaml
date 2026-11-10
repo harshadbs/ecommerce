@@ -1,0 +1,35 @@
+# Render Blueprint for the API (free plan).
+# Render dashboard → New → Blueprint → pick this repo.
+# Values marked `sync: false` are prompted for during setup; see DEPLOY.md.
+services:
+  - type: web
+    name: ecommerce-api
+    runtime: node
+    plan: free
+    region: singapore # closest Render region to India; create the Neon DB in AWS Singapore too
+    branch: main
+    buildCommand: >-
+      corepack enable &&
+      pnpm install --frozen-lockfile --prod=false &&
+      pnpm --filter @ecommerce/api exec prisma generate &&
+      pnpm --filter @ecommerce/api build
+    startCommand: pnpm --filter @ecommerce/api start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      # Render injects PORT itself; the API reads PORT before API_PORT.
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: DATABASE_URL # Neon connection string
+        sync: false
+      - key: APP_URL # storefront URL, e.g. https://<web>.vercel.app (used for CORS)
+        sync: false
+      - key: ADMIN_URL # admin URL, e.g. https://<admin>.vercel.app (used for CORS)
+        sync: false
+      - key: API_URL # this service's own URL, e.g. https://ecommerce-api.onrender.com
+        sync: false
