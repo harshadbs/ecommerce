@@ -1,16 +1,19 @@
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import type { JwtPayload, TokenPair } from '../types/index.js';
 
+// Expiry values come from env as plain strings like "15m" or "7d"
+type ExpiresIn = SignOptions['expiresIn'];
+
 export function generateAccessToken(payload: JwtPayload): string {
   return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-    expiresIn: env.JWT_ACCESS_EXPIRY,
+    expiresIn: env.JWT_ACCESS_EXPIRY as ExpiresIn,
   });
 }
 
 export function generateRefreshToken(payload: JwtPayload): string {
   return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-    expiresIn: env.JWT_REFRESH_EXPIRY,
+    expiresIn: env.JWT_REFRESH_EXPIRY as ExpiresIn,
   });
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, SlidersHorizontal, ShoppingBag, X } from 'lucide-react';
@@ -24,7 +24,24 @@ interface Category {
   slug: string;
 }
 
+// useSearchParams() needs a Suspense boundary, otherwise `next build` fails prerendering /products
 export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <ShopLayout>
+          <div className="flex items-center justify-center h-48">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+          </div>
+        </ShopLayout>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
+  );
+}
+
+function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);

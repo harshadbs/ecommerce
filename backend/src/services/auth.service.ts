@@ -1,4 +1,3 @@
-import { UserRole } from '@prisma/client';
 import { userRepository } from '../repositories/user.repository.js';
 import { refreshTokenRepository } from '../repositories/refreshToken.repository.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';

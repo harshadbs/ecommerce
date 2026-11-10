@@ -3,6 +3,11 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   API_PORT: z.coerce.number().default(4000),
+  // Set by hosts like Render/Railway/Heroku; takes precedence over API_PORT when present
+  PORT: z.coerce.number().optional(),
+  // Number of reverse-proxy hops in front of the app (0 = none).
+  // Defaults to 1 in production so req.ip is the real client IP for rate limiting.
+  TRUST_PROXY: z.coerce.number().int().min(0).optional(),
 
   // Database
   DATABASE_URL: z.string().min(1),
