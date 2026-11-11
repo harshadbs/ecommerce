@@ -11,7 +11,7 @@ config({ path: resolve(__dirname, '../../.env') });
 import app from './app.js';
 import { env, connectDatabase, disconnectDatabase } from './config/index.js';
 
-const PORT = env.API_PORT;
+const PORT = env.PORT ?? env.API_PORT;
 
 async function startServer() {
   try {

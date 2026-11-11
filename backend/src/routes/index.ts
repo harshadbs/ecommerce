@@ -97,10 +97,9 @@ router.patch('/admin/customers/:id/toggle-active', ...requireAdmin(), async (req
 // Admin: Dashboard stats
 router.get('/admin/stats', ...requireAdmin(), async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const [orderStats, totalCustomers, totalProducts] = await Promise.all([
+    const [orderStats, totalCustomers] = await Promise.all([
       orderPersistence.getStats(),
       userPersistence.count({ role: 'CUSTOMER' }),
-      (await import('../modules/product/persistence/index.js')).productPersistence.slugExists('__noop__').then(() => 0).catch(() => 0),
     ]);
 
     sendSuccess(res, {

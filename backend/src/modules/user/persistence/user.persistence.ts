@@ -1,6 +1,6 @@
 import { prisma } from '../../../config/database.js';
 import { User, Prisma } from '@prisma/client';
-import type { SafeUser } from '../../types/index.js';
+import type { SafeUser } from '../../../types/index.js';
 
 // Fields to exclude from user responses
 const safeUserSelect = {

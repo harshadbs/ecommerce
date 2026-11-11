@@ -1,6 +1,6 @@
 import { Address } from '@prisma/client';
 import { addressRepository } from '../repositories/address.repository.js';
-import { NotFoundError, ForbiddenError, BadRequestError } from '../utils/errors.js';
+import { NotFoundError, BadRequestError } from '../utils/errors.js';
 import type { CreateAddressInput, UpdateAddressInput } from '../validators/address.validator.js';
 
 const MAX_ADDRESSES_PER_USER = 10;

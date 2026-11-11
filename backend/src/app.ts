@@ -9,6 +9,13 @@ import { errorHandler, notFoundHandler, apiLimiter } from './middleware/index.js
 
 const app = express();
 
+// Behind a host's load balancer, req.ip is the proxy's IP unless we trust
+// X-Forwarded-For. Without this, every client shares one rate-limit bucket.
+const trustProxy = env.TRUST_PROXY ?? (env.NODE_ENV === 'production' ? 1 : 0);
+if (trustProxy > 0) {
+  app.set('trust proxy', trustProxy);
+}
+
 // Security middleware
 app.use(helmet());
 
