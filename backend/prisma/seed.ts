@@ -1,5 +1,9 @@
 import { config } from 'dotenv';
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
+
+// backend is an ES module ("type": "module"), so __dirname must be derived
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Load .env from monorepo root
 config({ path: resolve(__dirname, '../../.env') });
