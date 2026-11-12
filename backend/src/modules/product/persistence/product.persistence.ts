@@ -243,6 +243,16 @@ export class ProductPersistence {
     const count = await prisma.productVariant.count({ where });
     return count > 0;
   }
+
+  /** Listed products whose stock is at or below their own low-stock threshold. */
+  async countLowStock(): Promise<number> {
+    return prisma.product.count({
+      where: {
+        status: { in: ['ACTIVE', 'OUT_OF_STOCK'] },
+        stock: { lte: prisma.product.fields.lowStockThreshold },
+      },
+    });
+  }
 }
 
 export const productPersistence = new ProductPersistence();

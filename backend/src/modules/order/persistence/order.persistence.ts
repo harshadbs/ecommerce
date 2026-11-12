@@ -90,6 +90,17 @@ export class OrderPersistence {
 
     return { total, pending, processing, delivered, revenue: Number(revenueResult._sum.total || 0) };
   }
+
+  /** Orders placed and paid revenue for orders created in [from, to). */
+  async getPeriodStats(from: Date, to: Date): Promise<{ orders: number; revenue: number }> {
+    const createdAt = { gte: from, lt: to };
+    const [orders, revenueResult] = await Promise.all([
+      prisma.order.count({ where: { createdAt } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { createdAt, paymentStatus: 'PAID' } }),
+    ]);
+
+    return { orders, revenue: Number(revenueResult._sum.total || 0) };
+  }
 }
 
 export const orderPersistence = new OrderPersistence();

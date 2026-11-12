@@ -3,7 +3,7 @@ import { authRouter } from '../modules/auth/index.js';
 import { userRouter } from '../modules/user/index.js';
 import { addressRouter } from '../modules/address/index.js';
 import { categoryRouter } from '../modules/category/index.js';
-import { productRouter, productController } from '../modules/product/index.js';
+import { productRouter, productController, productPersistence } from '../modules/product/index.js';
 import { orderRouter } from '../modules/order/index.js';
 import { couponRouter } from '../modules/coupon/index.js';
 import { reviewRouter } from '../modules/review/index.js';
@@ -95,17 +95,41 @@ router.patch('/admin/customers/:id/toggle-active', ...requireAdmin(), async (req
 });
 
 // Admin: Dashboard stats
+const TREND_DAYS = 30;
+
+// Percentage change between two periods; null when there is no earlier figure to compare with.
+const percentChange = (current: number, previous: number): number | null =>
+  previous > 0 ? Math.round(((current - previous) / previous) * 1000) / 10 : null;
+
 router.get('/admin/stats', ...requireAdmin(), async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const [orderStats, totalCustomers] = await Promise.all([
-      orderPersistence.getStats(),
-      userPersistence.count({ role: 'CUSTOMER' }),
-    ]);
+    const now = new Date();
+    const periodStart = new Date(now.getTime() - TREND_DAYS * 24 * 60 * 60 * 1000);
+    const previousStart = new Date(now.getTime() - 2 * TREND_DAYS * 24 * 60 * 60 * 1000);
+
+    const [orderStats, totalCustomers, lowStock, current, previous, newCustomers, previousNewCustomers] =
+      await Promise.all([
+        orderPersistence.getStats(),
+        userPersistence.count({ role: 'CUSTOMER' }),
+        productPersistence.countLowStock(),
+        orderPersistence.getPeriodStats(periodStart, now),
+        orderPersistence.getPeriodStats(previousStart, periodStart),
+        userPersistence.count({ role: 'CUSTOMER', createdAt: { gte: periodStart, lt: now } }),
+        userPersistence.count({ role: 'CUSTOMER', createdAt: { gte: previousStart, lt: periodStart } }),
+      ]);
 
     sendSuccess(res, {
       stats: {
         ...orderStats,
         totalCustomers,
+        lowStock,
+        // Last 30 days compared with the 30 days before that
+        trends: {
+          days: TREND_DAYS,
+          revenue: percentChange(current.revenue, previous.revenue),
+          orders: percentChange(current.orders, previous.orders),
+          customers: percentChange(newCustomers, previousNewCustomers),
+        },
       },
     });
   } catch (error) {

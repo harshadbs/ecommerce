@@ -48,7 +48,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-canvas px-4">
       <div className="w-full max-w-md">
         <div className="card p-8">
           <div className="flex justify-end mb-4">
@@ -56,10 +56,10 @@ export default function LoginPage() {
           </div>
           
           <div className="text-center mb-8">
-            <Link href="/" className="text-2xl font-bold text-primary-600">
+            <Link href="/" className="font-display text-3xl font-semibold text-brand">
               {t('common.app_name')}
             </Link>
-            <h1 className="mt-4 text-2xl font-semibold">{t('auth.login_title')}</h1>
+            <h1 className="mt-4 text-2xl font-medium">{t('auth.login_title')}</h1>
             <p className="mt-2 text-secondary-600">{t('auth.login_subtitle')}</p>
           </div>
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
                 placeholder="you@example.com"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{t('validation.email_invalid')}</p>
+                <p className="mt-1 text-sm text-red-700">{t('validation.email_invalid')}</p>
               )}
             </div>
 
@@ -98,7 +98,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{t('validation.password_required')}</p>
+                <p className="mt-1 text-sm text-red-700">{t('validation.password_required')}</p>
               )}
             </div>
 

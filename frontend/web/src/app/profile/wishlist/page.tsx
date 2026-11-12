@@ -47,13 +47,13 @@ export default function WishlistPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">My Wishlist</h1>
+      <h1 className="text-2xl font-medium mb-6">My Wishlist</h1>
 
       {loading ? (
-        <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+        <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand" /></div>
       ) : items.length === 0 ? (
         <div className="card text-center py-12">
-          <Heart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+          <Heart className="h-12 w-12 text-secondary-300 mx-auto mb-3" />
           <p className="text-secondary-500">Your wishlist is empty</p>
           <Link href="/products" className="btn-primary btn-sm mt-4 inline-flex">Browse Products</Link>
         </div>
@@ -61,11 +61,11 @@ export default function WishlistPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map(item => (
             <div key={item.id} className="card overflow-hidden">
-              <Link href={`/products/${item.product.slug}`} className="block aspect-square bg-gray-100">
+              <Link href={`/products/${item.product.slug}`} className="block aspect-square bg-secondary-100">
                 {item.product.images?.[0] ? (
                   <img src={item.product.images[0].url} alt={item.product.name} className="w-full h-full object-cover hover:scale-105 transition-transform" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><Heart className="h-12 w-12 text-gray-300" /></div>
+                  <div className="w-full h-full flex items-center justify-center"><Heart className="h-12 w-12 text-secondary-300" /></div>
                 )}
               </Link>
               <div className="p-3">
@@ -77,10 +77,10 @@ export default function WishlistPage() {
                   )}
                 </div>
                 <div className="flex gap-2 mt-3">
-                  <button onClick={() => addToCart(item.product.id)} disabled={item.product.stock === 0} className="btn-primary btn-sm flex-1">
+                  <button onClick={() => addToCart(item.product.id)} disabled={item.product.stock === 0} className="btn-cta btn-sm flex-1">
                     <ShoppingCart className="h-3 w-3 mr-1" />{item.product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                   </button>
-                  <button onClick={() => removeFromWishlist(item.id)} className="btn-outline btn-sm text-red-500"><Trash2 className="h-3 w-3" /></button>
+                  <button onClick={() => removeFromWishlist(item.id)} className="btn-outline btn-sm text-red-700"><Trash2 className="h-3 w-3" /></button>
                 </div>
               </div>
             </div>
