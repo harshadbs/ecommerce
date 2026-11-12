@@ -39,15 +39,15 @@ export default function MyOrdersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">My Orders</h1>
+      <h1 className="text-2xl font-medium mb-6">My Orders</h1>
 
       {loading ? (
         <div className="flex items-center justify-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand" />
         </div>
       ) : orders.length === 0 ? (
         <div className="card text-center py-12">
-          <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+          <Package className="h-12 w-12 text-secondary-300 mx-auto mb-3" />
           <p className="text-secondary-500">No orders yet</p>
           <Link href="/products" className="btn-primary btn-sm mt-4 inline-flex">Start Shopping</Link>
         </div>
@@ -60,7 +60,7 @@ export default function MyOrdersPage() {
                   <p className="font-mono text-sm font-medium">#{order.orderNumber}</p>
                   <p className="text-xs text-secondary-500">{formatDate(order.createdAt)}</p>
                 </div>
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[order.orderStatus] || 'bg-gray-100 text-gray-800'}`}>
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[order.orderStatus] || 'bg-secondary-100 text-secondary-800'}`}>
                   {order.orderStatus}
                 </span>
               </div>

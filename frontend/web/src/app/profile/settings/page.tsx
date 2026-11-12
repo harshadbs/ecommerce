@@ -44,14 +44,14 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
+      <h1 className="text-2xl font-medium mb-6">Account Settings</h1>
 
       <div className="space-y-6">
         {/* Profile */}
         <div className="card p-6">
           <div className="flex items-center gap-2 mb-4">
             <User className="h-5 w-5 text-primary-600" />
-            <h2 className="font-semibold">Update Profile</h2>
+            <h2 className="font-medium">Update Profile</h2>
           </div>
           <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4 max-w-md">
             <div>
@@ -62,7 +62,7 @@ export default function SettingsPage() {
               <label className="label">Phone</label>
               <input {...profileForm.register('phone')} className="input mt-1" placeholder="9876543210" />
             </div>
-            {profileMsg && <p className={`text-sm ${profileMsg.includes('updated') ? 'text-green-600' : 'text-red-600'}`}>{profileMsg}</p>}
+            {profileMsg && <p className={`text-sm ${profileMsg.includes('updated') ? 'text-success' : 'text-red-700'}`}>{profileMsg}</p>}
             <button type="submit" disabled={savingProfile} className="btn-primary btn-sm">
               {savingProfile ? 'Saving...' : 'Save Changes'}
             </button>
@@ -73,7 +73,7 @@ export default function SettingsPage() {
         <div className="card p-6">
           <div className="flex items-center gap-2 mb-4">
             <Lock className="h-5 w-5 text-orange-600" />
-            <h2 className="font-semibold">Change Password</h2>
+            <h2 className="font-medium">Change Password</h2>
           </div>
           <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4 max-w-md">
             <div>
@@ -88,7 +88,7 @@ export default function SettingsPage() {
               <label className="label">Confirm New Password</label>
               <input {...passwordForm.register('confirmPassword', { required: true })} type="password" className="input mt-1" />
             </div>
-            {passwordMsg && <p className={`text-sm ${passwordMsg.includes('changed') ? 'text-green-600' : 'text-red-600'}`}>{passwordMsg}</p>}
+            {passwordMsg && <p className={`text-sm ${passwordMsg.includes('changed') ? 'text-success' : 'text-red-700'}`}>{passwordMsg}</p>}
             <button type="submit" disabled={savingPassword} className="btn-primary btn-sm">
               {savingPassword ? 'Changing...' : 'Change Password'}
             </button>

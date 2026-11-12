@@ -65,14 +65,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-canvas px-4 py-12">
       <div className="w-full max-w-md">
         <div className="card p-8">
           <div className="text-center mb-8">
-            <Link href="/" className="text-2xl font-bold text-primary-600">
+            <Link href="/" className="font-display text-3xl font-semibold text-brand">
               E-Store
             </Link>
-            <h1 className="mt-4 text-2xl font-semibold">Create an account</h1>
+            <h1 className="mt-4 text-2xl font-medium">Create an account</h1>
             <p className="mt-2 text-secondary-600">Join us for the best shopping experience</p>
           </div>
 
@@ -95,7 +95,7 @@ export default function RegisterPage() {
                 placeholder="John Doe"
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-sm text-red-700">{errors.name.message}</p>
               )}
             </div>
 
@@ -111,7 +111,7 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-700">{errors.email.message}</p>
               )}
             </div>
 
@@ -127,7 +127,7 @@ export default function RegisterPage() {
                 placeholder="9876543210"
               />
               {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                <p className="mt-1 text-sm text-red-700">{errors.phone.message}</p>
               )}
             </div>
 
@@ -143,7 +143,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-700">{errors.password.message}</p>
               )}
             </div>
 
@@ -159,7 +159,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                <p className="mt-1 text-sm text-red-700">{errors.confirmPassword.message}</p>
               )}
             </div>
 

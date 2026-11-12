@@ -52,7 +52,7 @@ export default function AddressesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">My Addresses</h1>
+        <h1 className="text-2xl font-medium">My Addresses</h1>
         <button onClick={() => setShowForm(!showForm)} className="btn-primary btn-sm"><Plus className="h-4 w-4 mr-1" />Add Address</button>
       </div>
 
@@ -96,10 +96,10 @@ export default function AddressesPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>
+        <div className="flex items-center justify-center h-32"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand" /></div>
       ) : addresses.length === 0 ? (
         <div className="card text-center py-12">
-          <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+          <MapPin className="h-12 w-12 text-secondary-300 mx-auto mb-3" />
           <p className="text-secondary-500">No addresses saved</p>
         </div>
       ) : (
@@ -114,7 +114,7 @@ export default function AddressesPage() {
               <p className="text-sm text-secondary-500 mt-1">📞 {addr.phone}</p>
               <div className="flex gap-2 mt-3">
                 {!addr.isDefault && <button onClick={() => setDefault(addr.id)} className="text-xs text-primary-600 hover:underline flex items-center gap-1"><Star className="h-3 w-3" />Set Default</button>}
-                <button onClick={() => deleteAddress(addr.id)} className="text-xs text-red-600 hover:underline flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
+                <button onClick={() => deleteAddress(addr.id)} className="text-xs text-red-700 hover:underline flex items-center gap-1"><Trash2 className="h-3 w-3" />Delete</button>
               </div>
             </div>
           ))}

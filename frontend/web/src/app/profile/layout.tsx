@@ -32,7 +32,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
     return (
       <ShopLayout>
         <div className="flex items-center justify-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand" />
         </div>
       </ShopLayout>
     );
@@ -54,7 +54,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === link.href ? 'bg-primary-50 text-primary-700 font-medium' : 'text-secondary-600 hover:bg-gray-50'}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === link.href ? 'bg-primary-50 text-primary-700 font-medium' : 'text-secondary-600 hover:bg-secondary-50'}`}
                   >
                     <link.icon className="h-4 w-4" />
                     {link.label}

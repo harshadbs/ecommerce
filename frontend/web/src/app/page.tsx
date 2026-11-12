@@ -2,19 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ShoppingBag, Truck, Shield, CreditCard } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RotateCcw, BadgePercent } from 'lucide-react';
 import { ShopLayout } from '@/components/layout';
+import { ProductCard, type ProductCardData } from '@/components/ProductCard';
 import api from '@/lib/api';
-
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  price: string;
-  mrp: string;
-  images: { url: string; alt: string | null; isPrimary: boolean }[];
-  category: { name: string };
-}
 
 interface Category {
   id: string;
@@ -23,127 +14,161 @@ interface Category {
   image: string | null;
 }
 
+const benefits = [
+  { icon: Truck, label: 'Free shipping', desc: 'On orders above ₹499' },
+  { icon: ShieldCheck, label: 'Secure payment', desc: '100% protected checkout' },
+  { icon: RotateCcw, label: 'Easy returns', desc: '7-day return policy' },
+  { icon: BadgePercent, label: 'Best prices', desc: 'Guaranteed lowest' },
+];
+
+const formatPrice = (price: string) => `₹${Number(price).toLocaleString('en-IN')}`;
+
 export default function HomePage() {
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<ProductCardData[]>([]);
+  const [newArrival, setNewArrival] = useState<ProductCardData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     api.get('/products?featured=true&limit=8').then(res => setFeaturedProducts(res.data.data || [])).catch(() => {});
+    api.get('/products?sort=newest&limit=1').then(res => setNewArrival(res.data.data?.[0] || null)).catch(() => {});
     api.get('/categories?parent_id=null').then(res => setCategories(res.data.data.categories || [])).catch(() => {});
   }, []);
 
-  const formatPrice = (price: string) => `₹${Number(price).toLocaleString('en-IN')}`;
-  const getDiscount = (price: string, mrp: string) => Math.round(((Number(mrp) - Number(price)) / Number(mrp)) * 100);
-
   return (
     <ShopLayout>
-      {/* Hero */}
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">Shop the Best Products Online</h1>
-            <p className="mt-4 text-lg text-primary-100">Discover amazing deals on electronics, fashion, and more. Free shipping on orders above ₹499.</p>
-            <div className="mt-8 flex gap-4">
-              <Link href="/products" className="bg-white text-primary-700 px-6 py-3 rounded-lg font-medium hover:bg-primary-50 transition-colors">
-                Shop Now
+      {/* Hero: asymmetric bento */}
+      <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8 lg:pt-8">
+        <div className="grid gap-4 lg:grid-cols-5">
+          {/* Main tile (60%) */}
+          <div className="relative flex min-h-[380px] animate-fade-up flex-col justify-end overflow-hidden rounded-3xl border border-line bg-secondary-100 p-8 sm:p-12 lg:col-span-3 lg:min-h-[520px]">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cta/15 via-transparent to-transparent"
+            />
+            <div className="relative max-w-xl">
+              <p className="eyebrow">New season edit</p>
+              <h1 className="mt-4 text-[40px] leading-[1.05] sm:text-6xl lg:text-7xl">
+                Everyday tech, thoughtfully chosen.
+              </h1>
+              <p className="mt-5 max-w-md text-base text-muted sm:text-lg">
+                Discover deals on electronics, fashion and more. Free shipping on orders above ₹499.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Link href="/products?featured=true" className="btn-cta btn-lg">
+                  Shop featured
+                </Link>
+                <Link href="/categories" className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-brand hover:underline">
+                  Browse categories <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Stacked tiles (40%) */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-1">
+            {newArrival ? (
+              <Link
+                href={`/products/${newArrival.slug}`}
+                className="card card-hover group flex animate-fade-up items-center gap-5 overflow-hidden rounded-3xl p-5"
+              >
+                <div className="aspect-[4/5] w-32 shrink-0 overflow-hidden rounded-2xl bg-secondary-100 sm:w-36">
+                  {newArrival.images?.[0] ? (
+                    <img
+                      src={newArrival.images[0].url}
+                      alt={newArrival.images[0].alt || newArrival.name}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <ShoppingBag className="h-10 w-10 text-secondary-300" aria-hidden="true" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="eyebrow">New arrival</p>
+                  <h2 className="mt-2 line-clamp-2 text-2xl">{newArrival.name}</h2>
+                  <p className="price mt-2 text-lg">{formatPrice(newArrival.price)}</p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand">
+                    View product <ArrowRight className="h-4 w-4" />
+                  </span>
+                </div>
               </Link>
-              <Link href="/categories" className="border border-white/50 text-white px-6 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors">
-                Browse Categories
+            ) : (
+              <Link
+                href="/products"
+                className="card card-hover flex animate-fade-up flex-col justify-end rounded-3xl p-8"
+              >
+                <p className="eyebrow">The full range</p>
+                <h2 className="mt-2 text-3xl">Shop all products</h2>
+                <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand">
+                  Start browsing <ArrowRight className="h-4 w-4" />
+                </span>
               </Link>
+            )}
+
+            <div className="flex animate-fade-up flex-col justify-end rounded-3xl bg-brand p-8 text-brand-fg">
+              <RotateCcw className="h-8 w-8" aria-hidden="true" />
+              <h2 className="mt-6 text-3xl">Free 7-day returns</h2>
+              <p className="mt-2 text-sm opacity-80">Changed your mind? Send it back within a week.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="border-b">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: Truck, label: 'Free Shipping', desc: 'On orders ₹499+' },
-              { icon: Shield, label: 'Secure Payment', desc: '100% protected' },
-              { icon: CreditCard, label: 'Easy Returns', desc: '7-day return policy' },
-              { icon: ShoppingBag, label: 'Best Prices', desc: 'Guaranteed lowest' },
-            ].map(f => (
-              <div key={f.label} className="flex items-center gap-3">
-                <f.icon className="h-8 w-8 text-primary-600 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-sm">{f.label}</p>
-                  <p className="text-xs text-secondary-500">{f.desc}</p>
-                </div>
-              </div>
+      {/* Category pills */}
+      {categories.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8" aria-label="Categories">
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
+            {categories.map(cat => (
+              <Link
+                key={cat.id}
+                href={`/products?category=${cat.id}`}
+                className="flex min-h-[56px] shrink-0 items-center gap-3 rounded-full border border-line bg-surface py-2 pl-2 pr-6 text-sm font-medium transition-colors hover:border-brand"
+              >
+                <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-secondary-100">
+                  {cat.image ? (
+                    <img src={cat.image} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  ) : (
+                    <ShoppingBag className="h-4 w-4 text-secondary-400" aria-hidden="true" />
+                  )}
+                </span>
+                {cat.name}
+              </Link>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Featured products */}
+      {featuredProducts.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <h2 className="text-3xl sm:text-4xl">Featured picks</h2>
+            <Link href="/products?featured=true" className="inline-flex min-h-[44px] shrink-0 items-center gap-1 text-sm font-semibold text-brand hover:underline">
+              View all <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
+            {featuredProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Why shop with us */}
+      <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+        <h2 className="mb-8 text-3xl sm:text-4xl">Why shop with us</h2>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {benefits.map(b => (
+            <div key={b.label} className="card rounded-2xl p-6">
+              <b.icon className="h-6 w-6 text-brand" strokeWidth={1.5} aria-hidden="true" />
+              <p className="mt-5 font-medium">{b.label}</p>
+              <p className="mt-1 text-sm text-muted">{b.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
-
-      {/* Categories */}
-      {categories.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Shop by Category</h2>
-            <Link href="/categories" className="text-primary-600 text-sm font-medium flex items-center gap-1 hover:underline">
-              View All <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {categories.slice(0, 6).map(cat => (
-              <Link key={cat.id} href={`/products?category=${cat.id}`} className="group text-center">
-                <div className="aspect-square rounded-xl bg-gray-100 overflow-hidden mb-2">
-                  {cat.image ? (
-                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl">🛍️</div>
-                  )}
-                </div>
-                <p className="text-sm font-medium group-hover:text-primary-600 transition-colors">{cat.name}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Featured Products */}
-      {featuredProducts.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Featured Products</h2>
-            <Link href="/products?featured=true" className="text-primary-600 text-sm font-medium flex items-center gap-1 hover:underline">
-              View All <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {featuredProducts.map(product => (
-              <Link key={product.id} href={`/products/${product.slug}`} className="card group overflow-hidden hover:shadow-md transition-shadow">
-                <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                  {product.images?.[0] ? (
-                    <img src={product.images[0].url} alt={product.images[0].alt || product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                      <ShoppingBag className="h-12 w-12" />
-                    </div>
-                  )}
-                  {Number(product.mrp) > Number(product.price) && (
-                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                      {getDiscount(product.price, product.mrp)}% OFF
-                    </span>
-                  )}
-                </div>
-                <div className="p-3">
-                  <p className="text-xs text-secondary-500">{product.category?.name}</p>
-                  <h3 className="font-medium text-sm mt-0.5 line-clamp-2 group-hover:text-primary-600 transition-colors">{product.name}</h3>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="font-bold text-sm">{formatPrice(product.price)}</span>
-                    {Number(product.mrp) > Number(product.price) && (
-                      <span className="text-xs text-secondary-400 line-through">{formatPrice(product.mrp)}</span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
     </ShopLayout>
   );
 }
