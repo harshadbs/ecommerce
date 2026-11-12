@@ -16,7 +16,8 @@ export class CategoryController {
     try {
       const { parent_id, active } = req.query;
       const categories = await getCategoriesUseCase.execute({
-        activeOnly: active !== 'false',
+        // Admin passes active=all to include inactive categories
+        activeOnly: active !== 'false' && active !== 'all',
         parentId: parent_id === 'null' ? null : (parent_id as string | undefined),
       });
       sendSuccess(res, { categories });

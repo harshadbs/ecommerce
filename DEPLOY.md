@@ -14,13 +14,28 @@ The order matters: the API and the frontends each need the other's URL.
 1. Create a project and pick region **AWS Asia Pacific (Singapore)**, the same region as the API.
 2. Under **Connect**, turn **Connection pooling off** and copy the connection string.
    Add `&connection_limit=5` to the end.
-3. From your laptop, at the repo root:
+3. From your laptop, at the repo root, create the tables and seed them:
    ```bash
    export DATABASE_URL="postgresql://...neon.tech/neondb?sslmode=require&connection_limit=5"
-   pnpm --filter @ecommerce/api exec prisma db push
+   pnpm --filter @ecommerce/api db:deploy
    pnpm --filter @ecommerce/api db:seed
    ```
    The seed creates `admin@ecommerce.com` / `Admin@123`. **Change that password in step 6.**
+
+   If this database was created earlier with `prisma db push`, mark the baseline as applied once
+   before `db:deploy`, so only the newer migrations run:
+   ```bash
+   pnpm --filter @ecommerce/api exec prisma migrate resolve --applied 0_init
+   ```
+
+### Schema changes after that
+
+Don't use `db:push` any more. Edit `backend/prisma/schema.prisma`, then create a migration locally:
+```bash
+pnpm --filter @ecommerce/api db:migrate --name <what_changed>
+```
+Commit the new `backend/prisma/migrations/<timestamp>_<what_changed>/` folder. Every Render build
+runs `db:deploy` as its last step, so production applies it automatically on the next deploy.
 
 ## 2. API (Render)
 
@@ -63,6 +78,5 @@ One service running all month uses about 744 hours, which fits in the 750 free h
 
 ## Later
 
-- **Migrations:** switch from `db push` to migrations. Create a baseline with `prisma migrate diff`, then run `prisma migrate deploy` in the Render build.
-- **Images:** move category images from base64 in the database to Cloudinary before adding many categories.
+- **Images:** product images are stored in Postgres (`tbl_media`, about 100–200 KB each after the admin resizes them). Neon's free 0.5 GB covers a few thousand images. Beyond that, move them to Cloudinary.
 - **Payments:** once Razorpay is live, move the storefront off Vercel Hobby, which forbids commercial use.

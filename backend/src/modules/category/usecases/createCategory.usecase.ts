@@ -26,7 +26,6 @@ export class CreateCategoryUseCase {
       name: data.name,
       slug,
       description: data.description,
-      image: data.image,
       parent: data.parentId ? { connect: { id: data.parentId } } : undefined,
       isActive: data.isActive,
       sortOrder: data.sortOrder,

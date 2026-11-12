@@ -1,5 +1,19 @@
 import { z } from 'zod';
 import { ProductStatus } from '@prisma/client';
+import { imageSourceSchema } from '../media/index.js';
+
+export const MAX_PRODUCT_IMAGES = 8;
+
+// Array order is the display order. The image flagged isPrimary (or else the first) is the cover.
+const productImagesSchema = z
+  .array(
+    z.object({
+      url: imageSourceSchema,
+      alt: z.string().max(200).optional(),
+      isPrimary: z.boolean().default(false),
+    })
+  )
+  .max(MAX_PRODUCT_IMAGES, `A product can have at most ${MAX_PRODUCT_IMAGES} images`);
 
 export const createProductSchema = z.object({
   body: z.object({
@@ -22,16 +36,7 @@ export const createProductSchema = z.object({
     isFeatured: z.boolean().default(false),
     metaTitle: z.string().max(100).optional(),
     metaDesc: z.string().max(200).optional(),
-    images: z
-      .array(
-        z.object({
-          url: z.string().url(),
-          alt: z.string().max(200).optional(),
-          isPrimary: z.boolean().default(false),
-          sortOrder: z.number().int().min(0).default(0),
-        })
-      )
-      .optional(),
+    images: productImagesSchema.optional(),
     variants: z
       .array(
         z.object({
@@ -68,6 +73,8 @@ export const updateProductSchema = z.object({
     isFeatured: z.boolean().optional(),
     metaTitle: z.string().max(100).optional().nullable(),
     metaDesc: z.string().max(200).optional().nullable(),
+    // When present, replaces the product's whole image list (send [] to remove all)
+    images: productImagesSchema.optional(),
   }),
 });
 
@@ -102,7 +109,7 @@ export const addImageSchema = z.object({
     id: z.string().min(1),
   }),
   body: z.object({
-    url: z.string().url('Invalid image URL'),
+    url: imageSourceSchema,
     alt: z.string().max(200).optional(),
     isPrimary: z.boolean().default(false),
     sortOrder: z.number().int().min(0).default(0),
@@ -141,6 +148,7 @@ export const updateVariantSchema = z.object({
 
 export type CreateProductInput = z.infer<typeof createProductSchema>['body'];
 export type UpdateProductInput = z.infer<typeof updateProductSchema>['body'];
+export type ProductImageInput = z.infer<typeof productImagesSchema>[number];
 export type AddImageInput = z.infer<typeof addImageSchema>['body'];
 export type AddVariantInput = z.infer<typeof addVariantSchema>['body'];
 export type UpdateVariantInput = z.infer<typeof updateVariantSchema>['body'];

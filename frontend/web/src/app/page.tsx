@@ -5,13 +5,12 @@ import Link from 'next/link';
 import { ArrowRight, ShoppingBag, Truck, ShieldCheck, RotateCcw, BadgePercent } from 'lucide-react';
 import { ShopLayout } from '@/components/layout';
 import { ProductCard, type ProductCardData } from '@/components/ProductCard';
-import api from '@/lib/api';
+import api, { assetUrl } from '@/lib/api';
 
 interface Category {
   id: string;
   name: string;
   slug: string;
-  image: string | null;
 }
 
 const benefits = [
@@ -74,7 +73,7 @@ export default function HomePage() {
                 <div className="aspect-[4/5] w-32 shrink-0 overflow-hidden rounded-2xl bg-secondary-100 sm:w-36">
                   {newArrival.images?.[0] ? (
                     <img
-                      src={newArrival.images[0].url}
+                      src={assetUrl(newArrival.images[0].url)}
                       alt={newArrival.images[0].alt || newArrival.name}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     />
@@ -125,12 +124,8 @@ export default function HomePage() {
                 href={`/products?category=${cat.id}`}
                 className="flex min-h-[56px] shrink-0 items-center gap-3 rounded-full border border-line bg-surface py-2 pl-2 pr-6 text-sm font-medium transition-colors hover:border-brand"
               >
-                <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-secondary-100">
-                  {cat.image ? (
-                    <img src={cat.image} alt="" loading="lazy" className="h-full w-full object-cover" />
-                  ) : (
-                    <ShoppingBag className="h-4 w-4 text-secondary-400" aria-hidden="true" />
-                  )}
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-100">
+                  <ShoppingBag className="h-4 w-4 text-secondary-400" aria-hidden="true" />
                 </span>
                 {cat.name}
               </Link>

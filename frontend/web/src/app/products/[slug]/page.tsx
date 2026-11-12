@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ShoppingBag, Heart, Minus, Plus, Package, Check, AlertTriangle, XCircle } from 'lucide-react';
 import { ShopLayout } from '@/components/layout';
 import { useAuthStore } from '@/stores/auth.store';
-import api from '@/lib/api';
+import api, { assetUrl } from '@/lib/api';
 
 interface ProductVariant {
   id: string;
@@ -146,7 +146,7 @@ export default function ProductDetailPage() {
               <div className="aspect-[4/5] flex-1 overflow-hidden rounded-3xl border border-line bg-secondary-100">
                 {product.images.length > 0 ? (
                   <img
-                    src={product.images[selectedImage]?.url}
+                    src={product.images[selectedImage] ? assetUrl(product.images[selectedImage].url) : undefined}
                     alt={product.images[selectedImage]?.alt || product.name}
                     className="h-full w-full object-cover"
                   />
@@ -166,7 +166,7 @@ export default function ProductDetailPage() {
                       aria-pressed={idx === selectedImage}
                       className={`aspect-[4/5] w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-secondary-100 lg:w-full ${idx === selectedImage ? 'border-brand' : 'border-transparent'}`}
                     >
-                      <img src={img.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                      <img src={assetUrl(img.url)} alt="" loading="lazy" className="h-full w-full object-cover" />
                     </button>
                   ))}
                 </div>

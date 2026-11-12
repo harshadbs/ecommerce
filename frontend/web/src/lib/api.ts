@@ -60,3 +60,11 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+/**
+ * Resolve an image src returned by the API. Uploaded images are stored as
+ * server-relative paths (/api/media/<id>) that live on the API host, not this site.
+ */
+export function assetUrl(src: string): string {
+  return src.startsWith('/') ? new URL(src, API_URL).href : src;
+}

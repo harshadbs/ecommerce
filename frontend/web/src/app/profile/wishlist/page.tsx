@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
-import api from '@/lib/api';
+import api, { assetUrl } from '@/lib/api';
 
 interface WishlistItem {
   id: string;
@@ -63,7 +63,7 @@ export default function WishlistPage() {
             <div key={item.id} className="card overflow-hidden">
               <Link href={`/products/${item.product.slug}`} className="block aspect-square bg-secondary-100">
                 {item.product.images?.[0] ? (
-                  <img src={item.product.images[0].url} alt={item.product.name} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                  <img src={assetUrl(item.product.images[0].url)} alt={item.product.name} className="w-full h-full object-cover hover:scale-105 transition-transform" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"><Heart className="h-12 w-12 text-secondary-300" /></div>
                 )}

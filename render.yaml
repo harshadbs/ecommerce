@@ -8,11 +8,15 @@ services:
     plan: free
     region: singapore # closest Render region to India; create the Neon DB in AWS Singapore too
     branch: main
+    # db:deploy (prisma migrate deploy) runs last, so a failed build never migrates the
+    # database. It applies any new backend/prisma/migrations/* folders, in order, once each.
+    # (Render's pre-deploy command would be the usual place, but it isn't on the free plan.)
     buildCommand: >-
       corepack enable &&
       pnpm install --frozen-lockfile --prod=false &&
       pnpm --filter @ecommerce/api exec prisma generate &&
-      pnpm --filter @ecommerce/api build
+      pnpm --filter @ecommerce/api build &&
+      pnpm --filter @ecommerce/api db:deploy
     startCommand: pnpm --filter @ecommerce/api start
     healthCheckPath: /api/health
     envVars:

@@ -11,7 +11,6 @@ interface Category {
   name: string;
   slug: string;
   description: string | null;
-  image: string | null;
   parentId: string | null;
   children?: Category[];
   _count?: { products: number };
@@ -77,19 +76,8 @@ function CategoryCard({ category }: { category: Category }) {
       href={`/products?category=${category.id}`}
       className="card card-hover group block overflow-hidden rounded-2xl"
     >
-      {/* Image */}
-      <div className="aspect-[4/3] bg-secondary-100 relative overflow-hidden">
-        {category.image ? (
-          <img
-            src={category.image}
-            alt={category.name}
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <FolderTree className="h-16 w-16 text-secondary-300" />
-          </div>
-        )}
+      <div className="aspect-[4/3] bg-secondary-100 flex items-center justify-center">
+        <FolderTree className="h-16 w-16 text-secondary-300" aria-hidden="true" />
       </div>
 
       {/* Info */}

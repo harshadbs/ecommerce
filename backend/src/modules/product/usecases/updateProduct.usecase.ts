@@ -3,6 +3,8 @@ import { productPersistence } from '../persistence/index.js';
 import { categoryPersistence } from '../../category/persistence/index.js';
 import { NotFoundError, ConflictError } from '../../../utils/errors.js';
 import type { UpdateProductInput } from '../product.validator.js';
+import { mediaService } from '../../media/index.js';
+import { prepareProductImages } from './productImages.helper.js';
 
 export class UpdateProductUseCase {
   async execute(id: string, data: UpdateProductInput): Promise<Product> {
@@ -35,22 +37,40 @@ export class UpdateProductUseCase {
       }
     }
 
-    return productPersistence.update(id, {
-      category: data.categoryId ? { connect: { id: data.categoryId } } : undefined,
-      name: data.name,
-      slug: data.slug,
-      description: data.description,
-      shortDesc: data.shortDesc,
-      price: data.price,
-      mrp: data.mrp,
-      sku: data.sku,
-      stock: data.stock,
-      lowStockThreshold: data.lowStockThreshold,
-      status: data.status,
-      isFeatured: data.isFeatured,
-      metaTitle: data.metaTitle,
-      metaDesc: data.metaDesc,
-    });
+    // `images` replaces the whole list; omitted means leave images untouched
+    const previousUrls = data.images ? await productPersistence.findImageUrls(id) : [];
+    const images = data.images ? await prepareProductImages(data.images) : undefined;
+
+    let updated: Product;
+    try {
+      updated = await productPersistence.update(id, {
+        category: data.categoryId ? { connect: { id: data.categoryId } } : undefined,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        shortDesc: data.shortDesc,
+        price: data.price,
+        mrp: data.mrp,
+        sku: data.sku,
+        stock: data.stock,
+        lowStockThreshold: data.lowStockThreshold,
+        status: data.status,
+        isFeatured: data.isFeatured,
+        metaTitle: data.metaTitle,
+        metaDesc: data.metaDesc,
+        images: images ? { deleteMany: {}, create: images.rows } : undefined,
+      });
+    } catch (error) {
+      if (images) await mediaService.deleteByUrls(images.uploaded);
+      throw error;
+    }
+
+    // Free stored files for images that were removed
+    if (images) {
+      const kept = new Set(images.rows.map((row) => row.url));
+      await mediaService.deleteByUrls(previousUrls.filter((url) => !kept.has(url)));
+    }
+    return updated;
   }
 }
 
