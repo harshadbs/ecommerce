@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Pencil, Trash2, FolderTree, Upload, X, ImageIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, FolderTree } from 'lucide-react';
 import api from '@/lib/api';
 import { Modal, Badge, ConfirmDialog } from '@/components/ui';
 
@@ -15,7 +15,6 @@ interface Category {
   name: string;
   slug: string;
   description: string | null;
-  image: string | null;
   parentId: string | null;
   isActive: boolean;
   sortOrder: number;
@@ -42,9 +41,6 @@ export default function CategoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch categories
   const { data, isLoading } = useQuery({
@@ -60,20 +56,12 @@ export default function CategoriesPage() {
   // Create/Update mutation
   const saveMutation = useMutation({
     mutationFn: async (formData: CategoryFormData) => {
-      const payload: any = {
+      const payload = {
         ...formData,
         slug: formData.slug || undefined,
         description: formData.description || undefined,
         parentId: formData.parentId || undefined,
       };
-
-      // Include image (base64 or null to remove)
-      if (imageBase64) {
-        payload.image = imageBase64;
-      } else if (imagePreview === null && editingCategory?.image) {
-        // Image was removed
-        payload.image = null;
-      }
 
       if (editingCategory) {
         return api.patch(`/categories/${editingCategory.id}`, payload);
@@ -106,52 +94,14 @@ export default function CategoriesPage() {
     resolver: zodResolver(categorySchema),
   });
 
-  // Handle file selection and convert to base64
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Image must be less than 2MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setImagePreview(base64String);
-      setImageBase64(base64String);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removeImage = () => {
-    setImagePreview(null);
-    setImageBase64(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   const openCreate = () => {
     setEditingCategory(null);
-    setImagePreview(null);
-    setImageBase64(null);
     reset({ name: '', slug: '', description: '', parentId: '', isActive: true, sortOrder: 0 });
     setIsModalOpen(true);
   };
 
   const openEdit = (category: Category) => {
     setEditingCategory(category);
-    setImagePreview(category.image || null);
-    setImageBase64(null); // Only set if user picks new image
     reset({
       name: category.name,
       slug: category.slug,
@@ -166,8 +116,6 @@ export default function CategoriesPage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingCategory(null);
-    setImagePreview(null);
-    setImageBase64(null);
     reset();
   };
 
@@ -211,7 +159,6 @@ export default function CategoriesPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Image</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Slug</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Parent</th>
@@ -223,19 +170,6 @@ export default function CategoriesPage() {
               <tbody className="divide-y divide-gray-100">
                 {categories.map((category) => (
                   <tr key={category.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      {category.image ? (
-                        <img
-                          src={category.image}
-                          alt={category.name}
-                          className="h-10 w-10 rounded-md object-cover"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-md bg-gray-100 flex items-center justify-center">
-                          <ImageIcon className="h-5 w-5 text-gray-400" />
-                        </div>
-                      )}
-                    </td>
                     <td className="px-4 py-3 font-medium text-gray-900">{category.name}</td>
                     <td className="px-4 py-3 text-gray-600">{category.slug}</td>
                     <td className="px-4 py-3 text-gray-600">
@@ -297,45 +231,6 @@ export default function CategoriesPage() {
           <div>
             <label className="label">Description</label>
             <textarea {...register('description')} className="input mt-1 h-20 resize-none" placeholder="Optional description" />
-          </div>
-
-          {/* Image Upload */}
-          <div>
-            <label className="label">Category Image</label>
-            <div className="mt-1">
-              {imagePreview ? (
-                <div className="relative inline-block">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="h-32 w-32 rounded-lg object-cover border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="h-32 w-32 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors"
-                >
-                  <Upload className="h-6 w-6 text-gray-400 mb-1" />
-                  <span className="text-xs text-gray-500">Upload</span>
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
-              />
-              <p className="text-xs text-gray-500 mt-2">PNG, JPG, WEBP up to 2MB</p>
-            </div>
           </div>
 
           <div>

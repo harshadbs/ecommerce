@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Minus, Plus, Trash2, ShoppingBag, Tag, Lock } from 'lucide-react';
 import { ShopLayout } from '@/components/layout';
 import { useAuthStore } from '@/stores/auth.store';
-import api from '@/lib/api';
+import api, { assetUrl } from '@/lib/api';
 
 interface CartItem {
   id: string;
@@ -129,7 +129,7 @@ export default function CartPage() {
                     <Link href={`/products/${item.product.slug}`} className="shrink-0">
                       <div className="aspect-[4/5] w-20 overflow-hidden rounded-xl bg-secondary-100 sm:w-24">
                         {item.product.images?.[0] ? (
-                          <img src={item.product.images[0].url} alt={item.product.name} loading="lazy" className="h-full w-full object-cover" />
+                          <img src={assetUrl(item.product.images[0].url)} alt={item.product.name} loading="lazy" className="h-full w-full object-cover" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center"><ShoppingBag className="h-8 w-8 text-secondary-300" aria-hidden="true" /></div>
                         )}

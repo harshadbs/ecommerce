@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Pencil, Trash2, Package, Search, Filter } from 'lucide-react';
-import api from '@/lib/api';
+import { Plus, Pencil, Trash2, Package, Search, Filter, Upload, X, Star } from 'lucide-react';
+import api, { assetUrl } from '@/lib/api';
+import { compressImage, ACCEPTED_IMAGE_TYPES, MAX_SOURCE_IMAGE_BYTES } from '@/lib/image';
 import { Modal, Badge, ConfirmDialog } from '@/components/ui';
 
 // Types
@@ -51,6 +52,8 @@ const productSchema = z.object({
 
 type ProductFormData = z.infer<typeof productSchema>;
 
+const MAX_PRODUCT_IMAGES = 8;
+
 const statusColors: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
   ACTIVE: 'success',
   DRAFT: 'warning',
@@ -67,6 +70,12 @@ export default function ProductsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [page, setPage] = useState(1);
+  // Ordered image list for the form; the first one is the cover. Entries are stored
+  // /api/media paths (existing) or data URLs (new uploads, saved by the API).
+  const [images, setImages] = useState<string[]>([]);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [isProcessingImages, setIsProcessingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch products (admin endpoint shows all statuses)
   const { data: productsData, isLoading } = useQuery({
@@ -100,10 +109,14 @@ export default function ProductsPage() {
   // Save mutation
   const saveMutation = useMutation({
     mutationFn: async (formData: ProductFormData) => {
+      const originalImages = editingProduct?.images.map((img) => img.url) ?? [];
+      const imagesChanged = images.join('\n') !== originalImages.join('\n');
       const payload = {
         ...formData,
         shortDesc: formData.shortDesc || undefined,
         sku: formData.sku || undefined,
+        // Full ordered list; the API stores new uploads and removes dropped images
+        images: imagesChanged ? images.map((url) => ({ url })) : undefined,
       };
       if (editingProduct) {
         return api.patch(`/products/${editingProduct.id}`, payload);
@@ -134,8 +147,50 @@ export default function ProductsPage() {
     resolver: zodResolver(productSchema),
   });
 
+  const handleImagesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ''; // allow re-selecting the same file
+    if (!files.length) return;
+
+    setImageError(null);
+    const room = MAX_PRODUCT_IMAGES - images.length;
+    if (files.length > room) {
+      setImageError(`A product can have at most ${MAX_PRODUCT_IMAGES} images`);
+    }
+
+    setIsProcessingImages(true);
+    const added: string[] = [];
+    for (const file of files.slice(0, Math.max(0, room))) {
+      if (!ACCEPTED_IMAGE_TYPES.split(',').includes(file.type)) {
+        setImageError(`${file.name}: use a JPG, PNG or WEBP image`);
+        continue;
+      }
+      if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+        setImageError(`${file.name}: image must be less than 10MB`);
+        continue;
+      }
+      try {
+        added.push(await compressImage(file));
+      } catch {
+        setImageError(`${file.name}: could not read this image`);
+      }
+    }
+    setImages((prev) => [...prev, ...added].slice(0, MAX_PRODUCT_IMAGES));
+    setIsProcessingImages(false);
+  };
+
+  const removeImageAt = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const makeCover = (index: number) => {
+    setImages((prev) => [prev[index], ...prev.filter((_, i) => i !== index)]);
+  };
+
   const openCreate = () => {
     setEditingProduct(null);
+    setImages([]);
+    setImageError(null);
     reset({
       categoryId: '',
       name: '',
@@ -153,6 +208,8 @@ export default function ProductsPage() {
 
   const openEdit = (product: Product) => {
     setEditingProduct(product);
+    setImages(product.images.map((img) => img.url)); // API returns the cover first
+    setImageError(null);
     reset({
       categoryId: product.categoryId,
       name: product.name,
@@ -171,6 +228,8 @@ export default function ProductsPage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
+    setImages([]);
+    setImageError(null);
     reset();
   };
 
@@ -271,7 +330,7 @@ export default function ProductsPage() {
                       <div className="flex items-center gap-3">
                         {product.images?.[0] ? (
                           <img
-                            src={product.images[0].url}
+                            src={assetUrl(product.images[0].url)}
                             alt={product.images[0].alt || product.name}
                             className="h-10 w-10 rounded-md object-cover bg-gray-100"
                           />
@@ -432,6 +491,67 @@ export default function ProductsPage() {
               {errors.description && <p className="text-red-600 text-xs mt-1">{errors.description.message}</p>}
             </div>
 
+            {/* Images */}
+            <div className="md:col-span-2">
+              <label className="label">Images</label>
+              <div className="mt-1 grid grid-cols-4 sm:grid-cols-5 gap-3">
+                {images.map((src, index) => (
+                  <div key={`${index}-${src.slice(-24)}`} className="relative aspect-square">
+                    <img
+                      src={assetUrl(src)}
+                      alt={`Product image ${index + 1}`}
+                      className="h-full w-full rounded-lg object-cover border border-gray-200"
+                    />
+                    {index === 0 ? (
+                      <span className="absolute bottom-1 left-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        Cover
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => makeCover(index)}
+                        className="absolute bottom-1 left-1 h-6 w-6 rounded-full bg-white/90 text-gray-700 flex items-center justify-center shadow hover:bg-white"
+                        title="Make cover image"
+                      >
+                        <Star className="h-3 w-3" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeImageAt(index)}
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600"
+                      title="Remove image"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {images.length < MAX_PRODUCT_IMAGES && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isProcessingImages}
+                    className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:border-primary-400 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                  >
+                    <Upload className="h-5 w-5 text-gray-400 mb-1" />
+                    <span className="text-xs text-gray-500">{isProcessingImages ? 'Processing…' : 'Add'}</span>
+                  </button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES}
+                multiple
+                onChange={handleImagesSelect}
+                className="hidden"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Up to {MAX_PRODUCT_IMAGES} images, PNG, JPG or WEBP up to 10MB each (resized automatically). The first image is the cover.
+              </p>
+              {imageError && <p className="text-red-600 text-xs mt-1">{imageError}</p>}
+            </div>
+
             <div className="flex items-center gap-2">
               <input
                 {...register('isFeatured')}
@@ -453,7 +573,7 @@ export default function ProductsPage() {
             <button type="button" onClick={closeModal} className="btn-outline btn-md">
               Cancel
             </button>
-            <button type="submit" className="btn-primary btn-md" disabled={saveMutation.isPending}>
+            <button type="submit" className="btn-primary btn-md" disabled={saveMutation.isPending || isProcessingImages}>
               {saveMutation.isPending ? 'Saving...' : editingProduct ? 'Update' : 'Create'}
             </button>
           </div>

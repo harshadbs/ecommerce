@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { assetUrl } from '@/lib/api';
 import { ShoppingBag } from 'lucide-react';
 
 export interface ProductCardData {
@@ -33,7 +34,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       <div className="relative aspect-[4/5] overflow-hidden bg-secondary-100">
         {image ? (
           <img
-            src={image.url}
+            src={assetUrl(image.url)}
             alt={image.alt || product.name}
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"

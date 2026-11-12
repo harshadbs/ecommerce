@@ -3,6 +3,8 @@ import { productPersistence } from '../persistence/index.js';
 import { categoryPersistence } from '../../category/persistence/index.js';
 import { ConflictError, NotFoundError } from '../../../utils/errors.js';
 import type { CreateProductInput } from '../product.validator.js';
+import { mediaService } from '../../media/index.js';
+import { prepareProductImages } from './productImages.helper.js';
 
 export class CreateProductUseCase {
   async execute(data: CreateProductInput): Promise<Product> {
@@ -37,44 +39,42 @@ export class CreateProductUseCase {
       }
     }
 
-    return productPersistence.create({
-      category: { connect: { id: data.categoryId } },
-      name: data.name,
-      slug,
-      description: data.description,
-      shortDesc: data.shortDesc,
-      price: data.price,
-      mrp: data.mrp,
-      sku: data.sku,
-      stock: data.stock,
-      lowStockThreshold: data.lowStockThreshold,
-      status: data.status,
-      isFeatured: data.isFeatured,
-      metaTitle: data.metaTitle,
-      metaDesc: data.metaDesc,
-      images: data.images?.length
-        ? {
-            create: data.images.map((img, idx) => ({
-              url: img.url,
-              alt: img.alt,
-              isPrimary: img.isPrimary || idx === 0,
-              sortOrder: img.sortOrder,
-            })),
-          }
-        : undefined,
-      variants: data.variants?.length
-        ? {
-            create: data.variants.map((v) => ({
-              sku: v.sku,
-              name: v.name,
-              size: v.size,
-              color: v.color,
-              price: v.price,
-              stock: v.stock,
-            })),
-          }
-        : undefined,
-    });
+    const images = await prepareProductImages(data.images ?? []);
+
+    try {
+      return await productPersistence.create({
+        category: { connect: { id: data.categoryId } },
+        name: data.name,
+        slug,
+        description: data.description,
+        shortDesc: data.shortDesc,
+        price: data.price,
+        mrp: data.mrp,
+        sku: data.sku,
+        stock: data.stock,
+        lowStockThreshold: data.lowStockThreshold,
+        status: data.status,
+        isFeatured: data.isFeatured,
+        metaTitle: data.metaTitle,
+        metaDesc: data.metaDesc,
+        images: images.rows.length ? { create: images.rows } : undefined,
+        variants: data.variants?.length
+          ? {
+              create: data.variants.map((v) => ({
+                sku: v.sku,
+                name: v.name,
+                size: v.size,
+                color: v.color,
+                price: v.price,
+                stock: v.stock,
+              })),
+            }
+          : undefined,
+      });
+    } catch (error) {
+      await mediaService.deleteByUrls(images.uploaded);
+      throw error;
+    }
   }
 
   private generateSlug(name: string): string {

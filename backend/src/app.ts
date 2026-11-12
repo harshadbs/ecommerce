@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import compression from 'compression';
 import { env } from './config/env.js';
 import routes from './routes/index.js';
+import { mediaRouter } from './modules/media/index.js';
 import { errorHandler, notFoundHandler, apiLimiter } from './middleware/index.js';
 
 const app = express();
@@ -27,6 +28,9 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+
+// Public image bytes, mounted ahead of apiLimiter (it has its own, looser limit)
+app.use('/api/media', mediaRouter);
 
 // Rate limiting
 app.use('/api', apiLimiter);

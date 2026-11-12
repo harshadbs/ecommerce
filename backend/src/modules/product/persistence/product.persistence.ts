@@ -197,6 +197,15 @@ export class ProductPersistence {
 
   // ===== Product Images =====
 
+  async findImageUrls(productId: string): Promise<string[]> {
+    const images = await prisma.productImage.findMany({ where: { productId }, select: { url: true } });
+    return images.map((img) => img.url);
+  }
+
+  async findImage(productId: string, imageId: string): Promise<ProductImage | null> {
+    return prisma.productImage.findFirst({ where: { id: imageId, productId } });
+  }
+
   async addImage(data: Prisma.ProductImageCreateInput): Promise<ProductImage> {
     return prisma.productImage.create({ data });
   }

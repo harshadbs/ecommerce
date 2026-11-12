@@ -33,3 +33,15 @@ export const passwordResetLimiter = rateLimit({
     sendError(res, 'Too many password reset attempts, please try again later', 429);
   },
 });
+
+// Image serving: one storefront page loads many images, so this sits outside apiLimiter
+// with a looser cap. Responses are immutable and browser-cached, so repeat views don't count.
+export const mediaLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    sendError(res, 'Too many requests, please try again later', 429);
+  },
+});

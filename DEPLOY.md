@@ -78,5 +78,5 @@ One service running all month uses about 744 hours, which fits in the 750 free h
 
 ## Later
 
-- **Images:** move category images from base64 in the database to Cloudinary before adding many categories.
+- **Images:** product images are stored in Postgres (`tbl_media`, about 100–200 KB each after the admin resizes them). Neon's free 0.5 GB covers a few thousand images. Beyond that, move them to Cloudinary.
 - **Payments:** once Razorpay is live, move the storefront off Vercel Hobby, which forbids commercial use.

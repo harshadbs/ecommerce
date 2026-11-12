@@ -10,7 +10,6 @@ export const createCategorySchema = z.object({
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase with hyphens only')
       .optional(),
     description: z.string().max(500).optional().or(z.literal('')),
-    image: z.string().optional().or(z.literal('')),
     parentId: z.string().optional().or(z.literal('')),
     isActive: z.boolean().default(true),
     sortOrder: z.number().int().min(0).default(0),
@@ -27,7 +26,6 @@ export const updateCategorySchema = z.object({
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase with hyphens only')
       .optional(),
     description: z.string().max(500).optional().nullable(),
-    image: z.string().optional().nullable(),
     parentId: z.string().optional().nullable(),
     isActive: z.boolean().optional(),
     sortOrder: z.number().int().min(0).optional(),

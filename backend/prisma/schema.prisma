@@ -88,7 +88,6 @@ model Category {
   name        String
   slug        String     @unique
   description String?
-  image       String?
   parentId    String?    @map("parent_id")
   parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryTree")
@@ -102,6 +101,18 @@ model Category {
   @@index([parentId])
   @@index([slug])
   @@map("tbl_categories")
+}
+
+// Uploaded image bytes, served at GET /api/media/:id. Rows are immutable:
+// replacing an image creates a new row, so responses can be cached forever.
+model Media {
+  id        String   @id @default(cuid())
+  mimeType  String   @map("mime_type")
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("tbl_media")
 }
 
 model Product {
